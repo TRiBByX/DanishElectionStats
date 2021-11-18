@@ -2,16 +2,26 @@ import collections
 
 def main():
     electionData = importCSV('data/valgdata.csv')
-    PartDataOverTime(electionData, 'Socialdemokratiet', 'Køge')
+    # PartyDataOverTime(electionData, 'Socialdemokratiet', 'Køge')
+    DifOfPartiesByYear(electionData, ['Socialdemokratiet', 'Socialistisk Folkeparti'], 'Køge')
 
 
-def PartDataOverTime(electionData, party, kommune):
+def PartyDataOverTime(electionData, party, kommune):
     development = {year: value[party][f'{kommune} Kommune'] for year, value in electionData.items()}
     with open(f'data/{party}In{kommune}.csv', 'w') as f:
         f.write('year,votes\n')
         for year, votes in development.items():
             f.write(f'{year},{votes}\n')
 
+
+def DifOfPartiesByYear(electionData, parties, kommune): # Only two parties.
+    if len(parties) > 2:
+        raise Exception('Party list too long')
+    development = {year: [value[parties[0]][f'{kommune} Kommune'], value[parties[1]][f'{kommune} Kommune']] for year, value in electionData.items()}
+    with open(f'data/{parties[0]}vs{parties[1]}.csv', 'w') as fi:
+        fi.write(f'year,{parties[0]} votes,{parties[1]} votes\n')
+        for year, votes in development.items():
+            fi.write(f'{year},{votes[0]},{votes[1]}\n')
 
 def importKommuneNr():
     with open('kommunenr.csv') as komcsv:
