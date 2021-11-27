@@ -1,9 +1,42 @@
 import collections
+import os
 
 def main():
     electionData = importCSV('data/valgdata.csv')
     # PartyDataOverTime(electionData, 'Socialdemokratiet', 'Køge')
-    DifOfPartiesByYear(electionData, ['Socialdemokratiet', 'Socialistisk Folkeparti'], 'Køge')
+    # DifOfPartiesByYear(electionData, ['Socialdemokratiet', 'Konservative Folkeparti'], 'Frederiksberg')
+    # partyCountryWide(electionData, 'Venstre')
+    partiesCountryWide(electionData, ['Venstre', 'Socialdemokratiet', 'Konservative Folkeparti', 'Socialistisk Folkeparti'])
+
+
+def partiesCountryWide(electionData, parties):
+    development = {}
+    for party in parties:
+        development[party] = {year: [list(num.values()) for name, num in kommune.items() if name == party] for year, kommune in electionData.items()}
+    for party, years in development.items():
+        for year, numbers in years.items():
+            development[party][year] = sum([int(float(num.replace(',', '.'))) for num in numbers[0]])
+    fileName = ''.join(parties)
+    with open(f'data/{fileName}.csv', 'w') as fi:
+        partyNames = ','.join(parties)
+        fi.write(f'year,{partyNames}\n')
+        years = [list(year.keys()) for party, year in development.items()][0]
+        for year in years:
+            fi.write(f'{year},')
+            for party in parties:
+                fi.write(f'{development[party][year]},')
+            fi.write('\n')
+
+
+def partyCountryWide(electionData, party):
+    development = {year: [v for k, v in value[party].items()] for year, value in electionData.items()}
+    for k, v in development.items():
+        development[k] = sum([int(float(value.replace(',', '.'))) for value in v])
+
+    with open(f'data/{party}.csv', 'w') as fi:
+        fi.write(f'year,{party}\n')
+        for k, v in development.items():
+            fi.write(f'{k},{v}\n')
 
 
 def PartyDataOverTime(electionData, party, kommune):
@@ -14,7 +47,7 @@ def PartyDataOverTime(electionData, party, kommune):
             f.write(f'{year},{votes}\n')
 
 
-def DifOfPartiesByYear(electionData, parties, kommune): # Only two parties.
+def DifOfPartiesByYear(electionData, parties, kommune):  # Only two parties.
     if len(parties) > 2:
         raise Exception('Party list too long')
     development = {year: [value[parties[0]][f'{kommune} Kommune'], value[parties[1]][f'{kommune} Kommune']] for year, value in electionData.items()}
